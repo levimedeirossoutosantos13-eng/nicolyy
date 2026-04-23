@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>abre aí 👀</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #111;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: -1;
+}
+
+.hidden {
+    display: none;
+}
+
+button {
+    padding: 15px 25px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    background: #ff4d6d;
+    color: white;
+    cursor: pointer;
+    margin-top: 20px;
+    box-shadow: 0 0 10px #ff4d6d;
+}
+
+#texto {
+    margin-top: 20px;
+    font-size: 20px;
+    max-width: 300px;
+    text-align: center;
+}
+
+textarea {
+    width: 250px;
+    height: 100px;
+    border-radius: 10px;
+    padding: 10px;
+    border: none;
+}
+
+.heart {
+    position: absolute;
+    color: #ff4d6d;
+    animation: subir 1.5s forwards;
+}
+
+@keyframes subir {
+    to {
+        transform: translateY(-80px);
+        opacity: 0;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<!-- TELA 1 -->
+<div id="screen1" style="text-align:center;">
+    <h1 id="titulo"></h1>
+    <div id="texto"></div>
+    <button onclick="proximo(event)">👉</button>
+</div>
+
+<!-- TELA 2 -->
+<div id="screen2" class="hidden" style="text-align:center;">
+    <h2>agora é contigo 😏</h2>
+    <p>quero ver o que tu vai aprontar aí</p>
+    <button onclick="irParaFinal()">continuar</button>
+</div>
+
+<!-- TELA 3 -->
+<div id="screen3" class="hidden" style="text-align:center;">
+    <h2>onde é nosso próximo encontro?</h2>
+    <p style="opacity:0.6">(pode escrever sem medo kkk)</p>
+
+    <textarea id="lugares" placeholder="ex: praia, açaí, cinema..."></textarea>
+    <br>
+    <button onclick="salvar()">salvar</button>
+    <p id="status"></p>
+</div>
+
+<!-- FIREBASE REALTIME DATABASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY",
+  authDomain: "nicolyy-5d5aa.firebaseapp.com",
+  databaseURL: "https://nicolyy-5d5aa-default-rtdb.firebaseio.com",
+  projectId: "nicolyy-5d5aa",
+  storageBucket: "nicolyy-5d5aa.firebasestorage.app",
+  messagingSenderId: "851772181465",
+  appId: "1:851772181465:web:8f3675ac3259cf417727c8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+window.db = db;
+window.ref = ref;
+window.push = push;
+</script>
+
+<script>
+let nome = "Nicoly";
+document.getElementById("titulo").innerText = "abre aí " + nome + " 👀";
+
+let etapa = 0;
+
+const mensagens = [
+    "tava lembrando de tu esses dias kkkkk",
+    "calma, nada estranho não",
+    "mas papo reto...",
+    "eu curti sair contigo de verdade",
+    "foi leve, deu pra rir pra caramba",
+    "e tu também quis repetir né 👀",
+    "então vou mandar a real...",
+    "bora sair dnv?"
+];
+
+function proximo(e) {
+    let texto = document.getElementById("texto");
+
+    criarCoracoes(e.clientX, e.clientY);
+
+    if (etapa < mensagens.length) {
+        texto.innerText = mensagens[etapa];
+        etapa++;
+    } else {
+        texto.innerHTML = `
+            <button onclick="aceitou()">óbvio</button>
+            <button onclick="hmm()">hmm...</button>
+        `;
+    }
+}
+
+function hmm(){
+    document.getElementById("texto").innerHTML = `
+        <p>hmmm… tá pensando demais hein 😏</p>
+        <button onclick="aceitou()">vai logo</button>
+        <button onclick="hmm2()">ainda não</button>
+    `;
+}
+
+function hmm2(){
+    document.getElementById("texto").innerHTML = `
+        <p>complicada você viu kkkkk</p>
+        <button onclick="aceitou()">vai 😏</button>
+    `;
+}
+
+function aceitou(){
+    document.getElementById("screen1").classList.add("hidden");
+    document.getElementById("screen2").classList.remove("hidden");
+}
+
+function irParaFinal(){
+    document.getElementById("screen2").classList.add("hidden");
+    document.getElementById("screen3").classList.remove("hidden");
+}
+
+function salvar(){
+    let valor = document.getElementById("lugares").value;
+
+    try {
+        push(ref(window.db, "respostas"), {
+            nome: "Nicoly",
+            lugares: valor,
+            data: new Date().toISOString()
+        });
+
+        document.getElementById("status").innerText = "anotado 😏";
+    } catch (e) {
+        console.log(e);
+        document.getElementById("status").innerText = "erro 😢";
+    }
+}
+
+// corações
+function criarCoracoes(x, y){
+    for(let i=0;i<5;i++){
+        let h = document.createElement("div");
+        h.className = "heart";
+        h.innerText = "❤";
+
+        h.style.left = x + "px";
+        h.style.top = y + "px";
+
+        document.body.appendChild(h);
+        setTimeout(()=>h.remove(),1500);
+    }
+}
+
+// fundo animado
+const canvas = document.getElementById("bg");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let hearts = [];
+
+for(let i=0;i<40;i++){
+    hearts.push({
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height,
+        speed: Math.random()*0.5 + 0.2
+    });
+}
+
+function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    ctx.fillStyle = "rgba(255,77,109,0.3)";
+    ctx.font = "16px Arial";
+
+    hearts.forEach(h=>{
+        ctx.fillText("❤", h.x, h.y);
+        h.y -= h.speed;
+
+        if(h.y < 0){
+            h.y = canvas.height;
+            h.x = Math.random()*canvas.width;
+        }
+    });
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+// expor funções
+window.proximo = proximo;
+window.hmm = hmm;
+window.hmm2 = hmm2;
+window.aceitou = aceitou;
+window.irParaFinal = irParaFinal;
+window.salvar = salvar;
+</script>
+
+</body>
+</html>
